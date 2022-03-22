@@ -10,7 +10,8 @@ cdef extern from "limits.h":
 
 cdef extern from "../trec_eval/trec_eval.h":
     ctypedef struct MEAS_ARG:
-        pass
+        char *measure_name;
+        char *parameters;
 
     # trec_eval session structure.
     ctypedef struct EPI:
@@ -126,6 +127,8 @@ cdef extern from "../trec_eval/trec_eval.h":
 
 # These are the internal structs for the `qrel` format
 cdef extern from "../trec_eval/trec_format.h":
+    void te_form_res_rels_cleanup()
+
     # Information about relevancies
     ctypedef struct TEXT_QRELS_INFO:
         long num_text_qrels         # Number of judged documents
@@ -160,6 +163,11 @@ cdef class MeasureWrapper:
     def __init__(self, name: str):
         self._initialized = False
 
+        cdef MEAS_ARG meas_arg
+        name_as_byte_string = name.encode("ascii")
+        meas_arg.measure_name = cython.NULL
+        meas_arg.parameters = cython.NULL
+
         # Setup EPI
         self._epi.query_flag = 0
         self._epi.average_complete_flag = 0
@@ -174,7 +182,7 @@ cdef class MeasureWrapper:
         self._epi.rel_info_format = "qrels"
         self._epi.results_format = "trec_results"
         self._epi.zscore_flag = 0
-        self._epi.meas_arg = cython.NULL
+        self._epi.meas_arg = &meas_arg
         
         self._measure = get_measure_by_name(name)
         self._measure.init_meas(&self._epi, self._measure, &self._eval)
@@ -183,6 +191,7 @@ cdef class MeasureWrapper:
     def __dealloc__(self):
         if self._initialized:
             self._measure.print_final_and_cleanup_meas(&self._epi, self._measure, &self._eval)
+            te_form_res_rels_cleanup()
 
     def get_explanation(self) -> str:
         return self._measure.explanation.decode("ascii")
@@ -192,8 +201,8 @@ cdef class MeasureWrapper:
             raise ValueError("Relevancies and judgements have different lengths!")
 
         n = len(relevancies)
-        qid = b"q0"
-        doc_ids = [f"doc{i}".encode("ascii") for i in range(n)]
+        qid = b"q1"
+        doc_ids = [f"doc{i + 1}".encode("ascii") for i in range(n)]
 
         # Fill out relevancies
         cdef REL_INFO query
@@ -260,7 +269,12 @@ def get_measure_names() -> List[str]:
     result = []
     for i in range(te_num_trec_measures):
         measure = te_trec_measures[i]
-        result.append(measure.name.decode('UTF-8'))
+        name = measure.name.decode('UTF-8')
+
+        if name == "runid":
+            continue
+
+        result.append(name)
 
     return result
 
