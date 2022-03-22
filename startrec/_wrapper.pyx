@@ -116,6 +116,9 @@ cdef extern from "../trec_eval/trec_eval.h":
         # Calculate actual measure for single query
         int (*calc_meas)(EPI *epi, REL_INFO *rel, RESULTS *results, const TREC_MEAS* tm, TREC_EVAL* eval)
 
+        # Print final summary value, and cleanup measure malloc's
+        int (*print_final_and_cleanup_meas)(const EPI *epi, TREC_MEAS *tm, TREC_EVAL* eval)
+
     # nicknames
     ctypedef struct TREC_MEASURE_NICKNAMES:
         char *name;
@@ -152,8 +155,11 @@ cdef class MeasureWrapper:
     cdef EPI _epi
     cdef TREC_EVAL _eval
     cdef TREC_MEAS *_measure
+    cdef bint _initialized
 
     def __init__(self, name: str):
+        self._initialized = False
+
         # Setup EPI
         self._epi.query_flag = 0
         self._epi.average_complete_flag = 0
@@ -161,7 +167,7 @@ cdef class MeasureWrapper:
         self._epi.summary_flag = 0
         self._epi.relation_flag = 1
         self._epi.debug_level = 0
-        self._epi.debug_query = NULL
+        self._epi.debug_query = cython.NULL
         self._epi.num_docs_in_coll = 0
         self._epi.relevance_level = 1
         self._epi.max_num_docs_per_topic = LONG_MAX
@@ -172,11 +178,11 @@ cdef class MeasureWrapper:
         
         self._measure = get_measure_by_name(name)
         self._measure.init_meas(&self._epi, self._measure, &self._eval)
+        self._initialized = True
 
     def __dealloc__(self):
-        #te_trec_measures[measure_idx]->print_final_and_cleanup_meas
-        #    (&self->epi_, te_trec_measures[measure_idx],  &accum_eval);
-        pass
+        if self._initialized:
+            self._measure.print_final_and_cleanup_meas(&self._epi, self._measure, &self._eval)
 
     def get_explanation(self) -> str:
         return self._measure.explanation.decode("ascii")
