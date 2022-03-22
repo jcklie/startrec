@@ -68,7 +68,7 @@ with open(os.path.join(here, "startrec", "__version__.py")) as f:
     exec(f.read(), about)
 
 
-test_dependencies = ["pytest==6.2.*"]
+test_dependencies = ["pytest==6.2.*", "pytrec-eval-terrier==0.5.*", "numpy==1.21.*"]
 dev_dependencies = ["black==22.1.*", "isort==5.10.*"]
 install_dependencies = ["Cython==0.29.*"]
 
