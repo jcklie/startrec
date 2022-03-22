@@ -128,6 +128,8 @@ cdef extern from "../trec_eval/trec_eval.h":
 # These are the internal structs for the `qrel` format
 cdef extern from "../trec_eval/trec_format.h":
     void te_form_res_rels_cleanup()
+    void te_form_res_rels_jg_cleanup()
+    void te_form_pref_counts_cleanup()
 
     # Information about relevancies
     ctypedef struct TEXT_QRELS_INFO:
@@ -192,6 +194,8 @@ cdef class MeasureWrapper:
         if self._initialized:
             self._measure.print_final_and_cleanup_meas(&self._epi, self._measure, &self._eval)
             te_form_res_rels_cleanup()
+            te_form_res_rels_jg_cleanup()
+            te_form_pref_counts_cleanup()
 
     def get_explanation(self) -> str:
         return self._measure.explanation.decode("ascii")
