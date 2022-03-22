@@ -196,7 +196,7 @@ cdef class MeasureWrapper:
     def get_explanation(self) -> str:
         return self._measure.explanation.decode("ascii")
 
-    def compute_single(self, relevancies: List[bool], judgements: List[float]) -> float:
+    def compute_single(self, relevancies: List[int], judgements: List[float]) -> float:
         if len(relevancies) != len(judgements):
             raise ValueError("Relevancies and judgements have different lengths!")
 

@@ -13,5 +13,5 @@ class Measure(MeasureWrapper):
         explanation = self.get_explanation()
         return textwrap.dedent(explanation).strip()
 
-    def compute(self, relevancies: List[bool], judgements: List[float]) -> float:
+    def compute(self, relevancies: List[int], judgements: List[float]) -> float:
         return self.compute_single(relevancies, judgements)
