@@ -91,10 +91,11 @@ setup(
     },
     packages=find_packages(exclude="tests"),
     test_suite="tests",
-    tests_requires=test_dependencies,
+    tests_require=test_dependencies,
     install_requires=install_dependencies,
     extras_require={"dev": dev_dependencies},
     ext_modules=cythonize_helper(get_extension_modules()),
+    zip_safe=False,
     include_package_data=True,
     license="MIT",
     classifiers=[
