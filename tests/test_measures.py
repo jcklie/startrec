@@ -128,8 +128,8 @@ def test_check_that_our_results_are_identical_to_pytrec_eval(name):
 
 
 def test_nicknames():
-    pass
+    raise NotImplementedError()
 
 
 def test_memory_leaks():
-    pass
+    raise NotImplementedError()
